@@ -1,5 +1,5 @@
 *.pyc
 data/
 save/
-.DS_Store
-.idea
+*/.DS_Store
+*/.idea
