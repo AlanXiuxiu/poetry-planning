@@ -42,7 +42,6 @@ class Segmenter:
             self.sxhy_dict = set(fin.read().split())
 
     def segment(self, sentence):
-        # TODO: try CRF-based segmentation.
         toks = []
         idx = 0
         while idx + 4 <= len(sentence):

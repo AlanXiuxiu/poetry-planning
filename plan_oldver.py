@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import os
-import random
-from random import shuffle
+from random import random, shuffle
 
 import jieba
 from gensim import models
@@ -16,8 +15,6 @@ from rank_words import RankedWords
 from segment import Segmenter
 
 _ancient_model_path = os.path.join(save_dir, 'ancient_model_5.bin')
-_modern_model_path = os.path.join(save_dir, 'sgns.baidubaike.bigram-char')
-# modern word2vec model download: https://github.com/Embedding/Chinese-Word-Vectors
 
 
 def gen_train_data():
@@ -84,32 +81,20 @@ class Planner:
         self.ranked_words = RankedWords()
         if not os.path.exists(_ancient_model_path):
             train_planner()
-        if not os.path.exists(_modern_model_path):
-            raise Exception("Please download Chinese Word vector in save dir")
 
         self.ancient_model = models.Word2Vec.load(_ancient_model_path)
-        self.modern_model = models.KeyedVectors.load_word2vec_format(_modern_model_path)
 
     def plan(self, text):
         return self._expand(self._extract(text))
 
     def _extract(self, text):
-
         def extract_from_sentence(sentence):
-            initial_words = set(jieba.lcut(sentence))
-            similars = self.modern_model.most_similar(positive=initial_words, topn=10)
-            similars = sorted(similars, key=lambda x: x[1] * random.random())
-            for similar in similars:
-                initial_words.add(similar[0])
             return filter(lambda w: w in self.ranked_words,
-                          initial_words)
+                          jieba.lcut(sentence))
 
         keywords = set()
         for sentence in split_sentences(text):
             keywords.update(extract_from_sentence(sentence))
-        if len(keywords) > NUM_OF_SENTENCES:
-            keywords = set(random.sample(keywords, NUM_OF_SENTENCES))
-
         return keywords
 
     def _expand(self, keywords):
@@ -120,7 +105,7 @@ class Planner:
                 similars = self.ancient_model.wv.most_similar(
                     positive=filtered_keywords)
                 # Sort similar words in decreasing similarity with randomness.
-                similars = sorted(similars, key=lambda x: x[1] * random.random())
+                similars = sorted(similars, key=lambda x: x[1] * random())
                 for similar in similars:
                     keywords.add(similar[0])
                     if len(keywords) == NUM_OF_SENTENCES:
@@ -128,7 +113,7 @@ class Planner:
             prob_sum = sum(1. / (i + 1) \
                            for i, word in enumerate(self.ranked_words) \
                            if word not in keywords)
-            rand_val = prob_sum * random.random()
+            rand_val = prob_sum * random()
             word_idx = 0
             s = 0
             while len(keywords) < NUM_OF_SENTENCES \
@@ -149,18 +134,9 @@ if __name__ == '__main__':
     inputs = ["春天到了，桃花开了。",
               "举杯饮酒，思乡情怯",
               "牧童遥指杏花村",
-              "中秋节的夜晚，想起故乡的月亮",
-              "奥巴马会见科比，一同打篮球，踢毽子",
-              "纵情山河万里，肆意九州五岳",
-              "燕子",
+              "中秋节的夜晚，想起故乡的月亮"
               ]
-
     for input in inputs:
-        keywords = planner._extract(input)
-        print('extract:')
+        keywords = planner.plan(input)
         print('{0:{2}^12}  ->  {1}\t'.format(input, keywords, chr(12288)))
 
-        keywords = planner._expand(keywords)
-        print('expand:')
-        print('{0:{2}^12}  ->  {1}\t'.format(input, keywords, chr(12288)))
-        print('\n', '------------------------', '\n')

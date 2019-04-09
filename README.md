@@ -10,6 +10,9 @@ ViVi的Poetry Planning部分，给定句子，可以生成所需数量的关键�
 - Python3.6
 - jieba==0.39
 - gensim==2.0.0
+- Download modern word2vec model from：
+https://github.com/Embedding/Chinese-Word-Vectors
+（Thanks for *Shen Li, Zhe Zhao, Renfen Hu, Wensi Li, Tao Liu, Xiaoyong Du, Analogical Reasoning on Chinese Morphological and Semantic Relations, ACL 2018.*）
 
 ## Main Process
 
@@ -44,3 +47,13 @@ expand(keywords)在关键词数目不够时被调用：
 如果已有的keywords可以没有出现在词向量模型中，则按照ranked_words的顺序逐一roll，
 
 每个词都有一定概率被选中，这样选取出的词会是在rank中排名较高的词
+
+## 2019/4/9 update
+
+- 添加了现代词向量。首先通过现代词词向量模型寻找相近的词，如果在古代词词表或其embedding中存在该词，即可确定下来
+
+- 对古代词向量模型生成的过程做了优化，在古代词向量中出现次数少于5次的词被过滤掉
+
+- 优化了个别情况下生成关键词数目混乱的bug
+
+

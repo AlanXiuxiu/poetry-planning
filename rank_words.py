@@ -29,6 +29,11 @@ class RankedWords:
             self._do_text_rank()
         with open(wordrank_path, 'r') as fin:
             self.word_scores = json.load(fin)
+            # TODO: set limit for the score of RankedWords
+            # for x in self.word_scores:
+            #     if x[1] < 1:
+            #         self.word_scores.remove(x)
+            # Going through the list costs too much time for initialization.
         self.word2rank = dict((word_score[0], rank)
                               for rank, word_score in enumerate(self.word_scores))
 
